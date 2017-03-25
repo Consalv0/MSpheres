@@ -5,8 +5,8 @@ var spheres = [];
 var preview = [];
 
 var MAXNUM = 500;  //Max number of spheres
-var MAXRAD = 10;   //Max Sphere radius
-var MINRAD = 2;     //Min Sphere radius
+var MAXRAD = 18;   //Max Sphere radius
+var MINRAD = 3;     //Min Sphere radius
 var MAXLAYER = 5;   //Max layers
 var sphLayer = 1;   //Num layers
 var numsounds = MAXLAYER;  // Define the number of samples
