@@ -4,13 +4,13 @@ var file = [];
 var spheres = [];
 var preview = [];
 
-var MAXNUM = 500;  //Max number of spheres
+var MAXSPH = 500;  //Max number of spheres
 var MAXRAD = 18;   //Max Sphere radius
 var MINRAD = 3;     //Min Sphere radius
-var MAXLAYER = 5;   //Max layers
+var LAYER = [1, 2, 3, 4, 5];   //Max layers
 var sphLayer = 1;   //Num layers
-var numsounds = MAXLAYER;  // Define the number of samples
-var vol = MINRAD/MAXRAD;
+var numsounds = LAYER.length;  // Define the number of samples
+var vol;
 
 var TRAIL = 50; //In ms
 
@@ -43,7 +43,7 @@ function setup() {
   pointR = 3;
 
   for(var i = 5; i > 0; i--){
-    spheres.push(new Sphere(createVector(random(width), random(height)), random(MINRAD, MAXRAD), createVector(random(10), random(10)), spheres.length, random(1, 1)));
+    spheres.push(new Sphere(createVector(random(width), random(height)), random(MINRAD, MAXRAD), createVector(random(10), random(10)), spheres.length, random(LAYER)));
   }
 }
 
@@ -82,12 +82,20 @@ function draw() {
     shot = createVector(offset.x - point.x + random(-0.1, 0.1), offset.y - point.y + random(-0.1, 0.1));
   }
   colorMode(HSB, 360, 100, 100);
-  fill(abs(sphLayer*360/MAXLAYER), 100, 100);
-  ellipse(point.x, point.y, pointR, pointR);
+    blendMode(DIFFERENCE);
+      fill(360, 1, 100);
+        textFont('Open Sans');
+        textSize(12);
+          text('Spheres: ' + spheres.length, 10, 15);
+
+    blendMode(BLEND);
+      fill(abs(sphLayer*360/LAYER.length), 100, 100);
+        ellipse(point.x, point.y, pointR, pointR);
+
   colorMode(RGB, 255, 255, 255, 100);
-  blendMode(MULTIPLY);
-  fill(128, TRAIL);
-  rect(HALFW, HALFH, width, height);
+    blendMode(MULTIPLY);
+      fill(128, TRAIL);
+        rect(HALFW, HALFH, width, height);
 }
 
 function keyPressed(){
@@ -104,15 +112,15 @@ function keyPressed(){
     rect(HALFW, HALFH, width, height);
   }
   if(keyIsDown(39) && keyIsDown(37)){
-    if(sphLayer <= MAXLAYER+1){
+    if(sphLayer <= LAYER.length+1){
       sphLayer++;
-      if(sphLayer > MAXLAYER){
+      if(sphLayer > LAYER.length){
         sphLayer = 1;}
     }
     blendMode(BLEND);
-    colorMode(HSB, 360, 100, 100);
-    fill(abs(sphLayer*360/MAXLAYER), 100, 100);
-    rect(HALFW, HALFH, width, height);
+      colorMode(HSB, 360, 100, 100);
+        fill(abs(sphLayer*360/LAYER.length), 100, 100);
+          rect(HALFW, HALFH, width, height);
   }
 }
 
@@ -121,14 +129,14 @@ function keyReleased(){
     if(preview.length-1 > 0){
       preview.pop(preview.length-1);
     }
-    if(spheres.length-1 <= MAXNUM){
+    if(spheres.length-1 <= MAXSPH){
       spheres.push(new Sphere(createVector(point.x, point.y), random(MINRAD, MAXRAD), createVector(shot.x, shot.y), spheres.length, sphLayer));
     }
   }
 }
 
 function Sphere(position, radius, velocity, id, layer) {
-  var p = position; var r = radius;
+  var p = position; var r = radius; var playSound;
   var v = velocity; var sphCollision;
 
   this.layer = function() {
@@ -151,7 +159,7 @@ function Sphere(position, radius, velocity, id, layer) {
 
     if(keyIsDown(32)){
       stroke(255);
-      line(point.x, point.y, offset.x, offset.y);
+        line(point.x, point.y, offset.x, offset.y);
       noStroke();
     }
   }
@@ -177,10 +185,9 @@ function Sphere(position, radius, velocity, id, layer) {
     // Display of Sphere
     noStroke();
     blendMode(BLEND);
-    colorMode(HSB, 360, 100, 100);
-
-    fill(abs(layer*360/MAXLAYER), abs(v.y) + abs(v.x)/(2*r/600), 100);
-    ellipse(p.x,p.y,r,r);
+      colorMode(HSB, 360, 100, 100);
+        fill(abs(layer*360/LAYER.length), abs(v.y) + abs(v.x)/(2*r/600), 100);
+          ellipse(p.x,p.y,r,r);
   };
 
   this.collision = function() {
@@ -229,17 +236,15 @@ function Sphere(position, radius, velocity, id, layer) {
     var minimD = ri + rj; //Minim distance
     var delta = createVector(pi.x - pj.x, pi.y - pj.y);
 
-    f++;
     var deltaM = delta.mag(); // Magnitude of delta
     if(deltaM > minimD) return; // Too far between them
 
-    f++;
     if(deltaM != 0.0){
       delta.mult((minimD - deltaM)/deltaM); // Minim distance to translate between the spheres
     }else{
-        deltaM = minimD - 1.0;
-        delta = createVector(0.0, minimD);
-        delta.mult((minimD - deltaM)/deltaM);
+      deltaM = minimD - 1.0;
+      delta = createVector(0.0, minimD);
+      delta.mult((minimD - deltaM)/deltaM);
     }
 
     pi.add(delta.mult(ri/(minimD)));
@@ -264,7 +269,7 @@ function Sphere(position, radius, velocity, id, layer) {
     vi = vi.add(impulse.x * mi, impulse.y * mi);
     vj = vj.sub(impulse.x * mj, impulse.y * mj);
 
-    //playSound(1.0);
+    playSound(layer);
   }
 
   playSound = function(layer){
