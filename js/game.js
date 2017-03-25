@@ -42,9 +42,6 @@ function setup() {
   point = createVector(HALFW,HALFH);
   pointR = 3;
 
-  // Create a Sound renderer and an array of empty soundfiles
-  //device = new AudioDevice(this, 48000, 32);
-
   for(var i = 5; i > 0; i--){
     spheres.push(new Sphere(createVector(random(width), random(height)), random(MINRAD, MAXRAD), createVector(random(10), random(10)), spheres.length, random(1, 1)));
   }
