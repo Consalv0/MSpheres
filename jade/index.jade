@@ -1,0 +1,38 @@
+doctype html
+link(hreflang="es-MX" href='http://draelena.com')
+html
+  head
+    title Musical \\ Spheres
+    meta(charset="UTF-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1")
+    link(rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css")
+    style
+      include ../css/main.css
+    link(href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet")
+    script(language="javascript" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.7/addons/p5.sound.js")
+  body
+    #game
+    
+    .section#header.center-all
+      .container
+       div(itemprop="additionalType" href="http://schema.org/MedicalBusiness").col-12.col-auto
+        //img(itemprop='image' src='img/logo.png').logo
+        h1.title Musical \\ Spheres
+        h2(itemprop='name').subtitle Esferas \\ Musicales
+        h2 
+         a(href='https://itch.io/jam/960144')«960 x 144»
+
+    .section#footer
+      .container
+        .row: .col-12.col-auto
+          .text-center 
+            a Musical \\ Spheres
+            
+    script(src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js")        
+    script(src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.7/p5.min.js")
+    script(src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.7/addons/p5.sound.min.js")
+    script(src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js")
+    script
+      include ../js/main.min.js
+    script
+      include ../js/game.min.js

@@ -1,0 +1,36 @@
+{
+  "devDependencies": {
+    "grunt": "~0.4.5",
+    "grunt-contrib-less": "~0.11.0",
+    "grunt-contrib-watch": "~0.6.1",
+    "grunt-contrib-jade": "~0.13.0"
+  },
+  "dependencies": {
+    "grunt": "^1.0.1",
+    "grunt-contrib-jade": "^1.0.0",
+    "grunt-contrib-less": "^1.4.0",
+    "grunt-contrib-uglify": "^2.0.0",
+    "grunt-contrib-watch": "^1.0.0"
+  },
+  "name": "draelena",
+  "version": "1.0.0",
+  "main": "Gruntfile.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "grunt build",
+    "start": "grunt"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@bitbucket.org/elxris/draelena.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "homepage": "https://bitbucket.org/elxris/draelena#readme",
+  "description": "",
+  "standard": {
+    "globals": [
+      "$"
+    ]
+  }
+}
