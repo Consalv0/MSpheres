@@ -204,7 +204,7 @@ function Sphere(position, radius, velocity, id, layer) {
     noStroke();
     blendMode(BLEND);
       colorMode(HSB, 360, 100, 100);
-        fill(abs(layer*360/LAYER.length), abs(v.y) + abs(v.x)/(2*r/600), 100);
+        fill(abs(layer*360/LAYER.length), abs(v.y) + abs(v.x)/(2*r/600)+50, 100);
           ellipse(p.x,p.y,r,r);
   };
 
@@ -290,7 +290,7 @@ function Sphere(position, radius, velocity, id, layer) {
 
     ellipse(p.x, p.y, sumRad*2, sumRad*2)
 
-    playSound(layer, 1, (ri + rj)/MAXRAD*2);
+    playSound(layer, (ri+rj)/MAXRAD*2, (ri + rj)/MAXRAD*2);
   }
 
   playSound = function(layer, rate, vol){
