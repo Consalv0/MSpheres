@@ -116,15 +116,15 @@ class Sphere {
     PVector impulse = delta.mult(kE);
 
     // change in momentum
-    vi = vi.add(impulse.x * mi, impulse.y * mi);
-    vj = vj.sub(impulse.x * mj, impulse.y * mj);
+    vi = vi.add(impulse.mult(mi));
+    vj = vj.sub(impulse.mult(mj));
 
     sphThis.playSound(1.0);
   }
 
   void playSound(float rate){
     if(fCount > 200){
-      file[this.layer-1].play(rate, this.r/MAXRAD);
+      //file[this.layer-1].play(rate, this.r/MAXRAD);
       fCount = 0;
     }
   }

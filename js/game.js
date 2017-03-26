@@ -201,24 +201,24 @@ function Sphere(position, radius, velocity, id, layer) {
     if(p.x+r > width){
       p.x += -abs(-width+p.x+r);
       v.x *= -1;
-      playSound(layer);
+      playSound(layer, 0.5, r/MAXRAD);
     }
     if(p.x-r < 0){
       p.x += abs(p.x-r);
       v.x *= -1;
-      playSound(layer);
+      playSound(layer, 1, r/MAXRAD);
       //this.playSound(1);
     }
     if(p.y+r > height){
       p.y += -abs(-height+p.y+r);
       v.y *= -1;
-      playSound(layer);
+      playSound(layer, 1.5, r/MAXRAD);
       //this.playSound(2);
     }
     if(p.y-r < 0){
       p.y += abs(p.y-r);
       v.y *= -1;
-      playSound(layer);
+      playSound(layer, 2, r/MAXRAD);
       //this.playSound(3);
     }
 
@@ -242,15 +242,15 @@ function Sphere(position, radius, velocity, id, layer) {
     var sumRad = ri + rj; // Minim distance
     var vctBtw = createVector(pi.x - pj.x, pi.y - pj.y); // Vector created from the distance between them
     var disBtw = vctBtw.mag(); // Magnitude of vctBtw
+
     if(disBtw > sumRad-0.01) return; // Too to far to collide
 
-    var mdBtw;
     if(disBtw != 0){
-      mdBtw = vctBtw.mult((sumRad - disBtw)/disBtw); // Vector of the minim distance between the spheres
+      vctBtw.mult((sumRad - disBtw)/disBtw); // Vector of minim distance between the spheres
     }else{
       disBtw = sumRad - 1.0;
       vctBtw = createVector(0, sumRad);
-      mdBtw = vctBtw.mult((sumRad - disBtw)/disBtw);
+      vctBtw.mult((sumRad - disBtw)/disBtw);
     }
 
     pi.add( vctBtw.mult( ri / sumRad ) );
@@ -263,25 +263,25 @@ function Sphere(position, radius, velocity, id, layer) {
     var vj = sphOther.v();
 
     var vDiff = (vi.sub(vj)); // Velocity differences
-    var vNorm = vDiff.dot(mdBtw.normalize()); // vDiff multiplyed by the collision dircetion
+    var vNorm = vDiff.dot(vctBtw.normalize()); // vDiff multiplyed by the collision dircetion
 
     // Sphere intersecting but moving away from each other already
     if (vNorm > 0) return;
 
     // Collision impulse
     var kE = (-(1.0 + 0.8) * vNorm) / (mi + mj);
-    var impulse = mdBtw.mult(kE);
+    var impulse = vctBtw.mult(kE);
 
     // change in momentum
     vi = vi.add(impulse.mult( mi ));
-    vi = vj.sub(impulse.mult( mj ));
+    vj = vj.sub(impulse.mult( mj ));
 
-    playSound(layer);
+    playSound(layer, 1, (ri + rj)/MAXRAD*2);
   }
 
-  playSound = function(layer){
+  playSound = function(layer, rate, vol){
     if(fCount < 20){
-      file[layer-1].play();
+      file[layer-1].play(0, rate, vol);
       fCount++;
     }
   }
