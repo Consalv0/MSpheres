@@ -45,6 +45,7 @@ function setup() {
   for(var i = 5; i > 0; i--){
     spheres.push(new Sphere(createVector(random(width), random(height)), random(MINRAD, MAXRAD), createVector(random(10), random(10)), spheres.length, random(LAYER)));
   }
+  setInterval(endSound, 10);
 }
 
 function draw() {
@@ -79,7 +80,7 @@ function draw() {
     if(preview.length <= 0){
       preview.push(new Sphere(createVector(point.x, point.y), 0, createVector(0, 0), preview.length, 0));
     }
-    shot = createVector(offset.x - point.x + random(-0.1, 0.1), offset.y - point.y + random(-0.1, 0.1));
+    shot = createVector(offset.x - point.x, offset.y - point.y);
   }
   colorMode(HSB, 360, 100, 100);
     blendMode(DIFFERENCE);
@@ -135,9 +136,15 @@ function keyReleased(){
   }
 }
 
+function endSound(){
+  if(fCount > 0){
+    fCount--;
+  }
+}
+
 function Sphere(position, radius, velocity, id, layer) {
   var p = position; var r = radius; var playSound;
-  var v = velocity; var sphCollision;
+  var v = velocity; var sphCollision; var endSound;
 
   this.layer = function() {
     return layer;
@@ -177,7 +184,6 @@ function Sphere(position, radius, velocity, id, layer) {
       if(v.y > 0){ v.y -= abs(v.y)/FRICTION;}
       if(v.y < 0){ v.y += abs(v.y)/FRICTION;}
     }
-    fCount += 100;
     p.add(v);
   };
 
@@ -230,52 +236,53 @@ function Sphere(position, radius, velocity, id, layer) {
 
     if(layer != sphOther.layer()) return;
 
-    var pi = p; var ri = r;
-    var pj = sphOther.p(); var rj = sphOther.r();
+    var pi = p;             var ri = r;
+    var pj = sphOther.p();  var rj = sphOther.r();
 
-    var minimD = ri + rj; //Minim distance
-    var delta = createVector(pi.x - pj.x, pi.y - pj.y);
+    var sumRad = ri + rj; // Minim distance
+    var vctBtw = createVector(pi.x - pj.x, pi.y - pj.y); // Vector created from the distance between them
+    var disBtw = vctBtw.mag(); // Magnitude of vctBtw
+    if(disBtw > sumRad-0.01) return; // Too to far to collide
 
-    var deltaM = delta.mag(); // Magnitude of delta
-    if(deltaM > minimD) return; // Too far between them
-
-    if(deltaM != 0.0){
-      delta.mult((minimD - deltaM)/deltaM); // Minim distance to translate between the spheres
+    var mdBtw;
+    if(disBtw != 0){
+      mdBtw = vctBtw.mult((sumRad - disBtw)/disBtw); // Vector of the minim distance between the spheres
     }else{
-      deltaM = minimD - 1.0;
-      delta = createVector(0.0, minimD);
-      delta.mult((minimD - deltaM)/deltaM);
+      disBtw = sumRad - 1.0;
+      vctBtw = createVector(0, sumRad);
+      mdBtw = vctBtw.mult((sumRad - disBtw)/disBtw);
     }
 
-    pi.add(delta.mult(ri/(minimD)));
-    pj.sub(delta.mult(rj/(minimD)));
+    pi.add( vctBtw.mult( ri / sumRad ) );
+    pj.sub( vctBtw.mult( rj / sumRad ) );
 
-    var mi = 1/ri;
+    var mi = 1/ri; // Inverse mass
     var mj = 1/rj;
+
     var vi = v;
     var vj = sphOther.v();
 
-    var dv = (vi.sub(vj));
-    var dvNormalized = dv.dot(delta.normalize());
+    var vDiff = (vi.sub(vj)); // Velocity differences
+    var vNorm = vDiff.dot(mdBtw.normalize()); // vDiff multiplyed by the collision dircetion
 
-    // sphere intersecting but moving away from each other already
-    if (dvNormalized > 0.0) return;
+    // Sphere intersecting but moving away from each other already
+    if (vNorm > 0) return;
 
-    // collision impulse
-    var kE = (-(1.0 + 0.8) * dvNormalized) / (mi + mj);
-    var impulse = delta.mult(kE);
+    // Collision impulse
+    var kE = (-(1.0 + 0.8) * vNorm) / (mi + mj);
+    var impulse = mdBtw.mult(kE);
 
     // change in momentum
-    vi = vi.add(impulse.x * mi, impulse.y * mi);
-    vj = vj.sub(impulse.x * mj, impulse.y * mj);
+    vi = vi.add(impulse.mult( mi ));
+    vi = vj.sub(impulse.mult( mj ));
 
     playSound(layer);
   }
 
   playSound = function(layer){
-    if(fCount > 200){
+    if(fCount < 20){
       file[layer-1].play();
-      fCount = 0;
+      fCount++;
     }
   }
 };
