@@ -7,6 +7,7 @@ var preview = [];
 var MAXSPH = 500;  //Max number of spheres
 var MAXRAD = 18;   //Max Sphere radius
 var MINRAD = 3;     //Min Sphere radius
+var radSize;
 var LAYER = [1, 2, 3, 4, 5];   //Max layers
 var sphLayer = 1;   //Num layers
 var numsounds = LAYER.length;  // Define the number of samples
@@ -46,6 +47,7 @@ function setup() {
     spheres.push(new Sphere(createVector(random(width), random(height)), random(MINRAD, MAXRAD), createVector(random(10), random(10)), spheres.length, random(LAYER)));
   }
   setInterval(endSound, 10);
+  setInterval(radCount, 10);
 }
 
 function draw() {
@@ -78,7 +80,7 @@ function draw() {
   }
   if(keyIsDown(32)){
     if(preview.length <= 0){
-      preview.push(new Sphere(createVector(point.x, point.y), 0, createVector(0, 0), preview.length, 0));
+      preview.push(new Sphere(createVector(point.x, point.y), radSize, createVector(0, 0), preview.length, 0));
     }
     shot = createVector(offset.x - point.x, offset.y - point.y);
   }
@@ -100,6 +102,8 @@ function draw() {
 }
 
 function keyPressed(){
+  radSize = MINRAD
+
   if(keyCode == 32){
     offset = createVector(point.x, point.y);
   }
@@ -131,7 +135,7 @@ function keyReleased(){
       preview.pop(preview.length-1);
     }
     if(spheres.length-1 <= MAXSPH){
-      spheres.push(new Sphere(createVector(point.x, point.y), random(MINRAD, MAXRAD), createVector(shot.x, shot.y), spheres.length, sphLayer));
+      spheres.push(new Sphere(createVector(point.x, point.y), radSize, createVector(shot.x, shot.y), spheres.length, sphLayer));
     }
   }
 }
@@ -139,6 +143,14 @@ function keyReleased(){
 function endSound(){
   if(fCount > 0){
     fCount--;
+  }
+}
+
+function radCount(){
+  if(radSize < MAXRAD && keyIsDown(32)){
+    radSize += 0.1;
+  }else {
+    radSize = MINRAD
   }
 }
 
@@ -162,7 +174,7 @@ function Sphere(position, radius, velocity, id, layer) {
   this.placement = function() {
     //Preview of shotting sphere
     p.set(point.x, point.y);
-    r = MINRAD;
+    r = radSize;
 
     if(keyIsDown(32)){
       stroke(255);
@@ -242,15 +254,15 @@ function Sphere(position, radius, velocity, id, layer) {
     var sumRad = ri + rj; // Minim distance
     var vctBtw = createVector(pi.x - pj.x, pi.y - pj.y); // Vector created from the distance between them
     var disBtw = vctBtw.mag(); // Magnitude of vctBtw
-
     if(disBtw > sumRad-0.01) return; // Too to far to collide
 
+    var mdBtw;
     if(disBtw != 0){
-      vctBtw.mult((sumRad - disBtw)/disBtw); // Vector of minim distance between the spheres
+      mdBtw = vctBtw.mult((sumRad - disBtw)/disBtw); // Vector of the minim distance between the spheres
     }else{
       disBtw = sumRad - 1.0;
       vctBtw = createVector(0, sumRad);
-      vctBtw.mult((sumRad - disBtw)/disBtw);
+      mdBtw = vctBtw.mult((sumRad - disBtw)/disBtw);
     }
 
     pi.add( vctBtw.mult( ri / sumRad ) );
@@ -263,18 +275,20 @@ function Sphere(position, radius, velocity, id, layer) {
     var vj = sphOther.v();
 
     var vDiff = (vi.sub(vj)); // Velocity differences
-    var vNorm = vDiff.dot(vctBtw.normalize()); // vDiff multiplyed by the collision dircetion
+    var vNorm = vDiff.dot(mdBtw.normalize()); // vDiff multiplyed by the collision dircetion
 
     // Sphere intersecting but moving away from each other already
     if (vNorm > 0) return;
 
-    // Collision impulse
-    var kE = (-(1.0 + 0.8) * vNorm) / (mi + mj);
-    var impulse = vctBtw.mult(kE);
+    // Elastic collision impulse
+    var kE = (-(1.0 + 0.99) * vNorm) / (mi + mj);
+    var impulse = mdBtw.mult(kE);
 
-    // change in momentum
+    // Change it's momentum
     vi = vi.add(impulse.mult( mi ));
     vj = vj.sub(impulse.mult( mj ));
+
+    ellipse(p.x, p.y, sumRad*2, sumRad*2)
 
     playSound(layer, 1, (ri + rj)/MAXRAD*2);
   }
