@@ -21,6 +21,7 @@ var HALFH;
 
 var FRICTION = 10000; //More is less, <1 is none
 var fCount = 0;
+var keyTimer = 0;
 
 var point; var pointR;
 var offset;
@@ -46,8 +47,8 @@ function setup() {
   for(var i = 5; i > 0; i--){
     spheres.push(new Sphere(createVector(random(width), random(height)), random(MINRAD, MAXRAD), createVector(random(10), random(10)), spheres.length, random(LAYER)));
   }
-  setInterval(endSound, 10);
-  setInterval(radCount, 10);
+  setInterval(soundTimer, 10);
+  setInterval(radTimer, 10);
 }
 
 function draw() {
@@ -77,10 +78,19 @@ function draw() {
   }
   if(keyIsDown(40) && point.y <= height-pointR){
     point.y += pointR*0.5;
+
+    if(keyIsDown(38)){
+      keyTimer++;
+      if (keyTimer > 100) {
+        for(var i = spheres.length; i >= 0; i--){
+          spheres.pop(i);
+        }
+      }
+    }
   }
   if(keyIsDown(32)){
     if(preview.length <= 0){
-      preview.push(new Sphere(createVector(point.x, point.y), radSize, createVector(0, 0), preview.length, 0));
+      preview.push(new Sphere(createVector(point.x, point.y), radSize, createVector(0, 0), preview.length, sphLayer));
     }
     shot = createVector(offset.x - point.x, offset.y - point.y);
   }
@@ -94,6 +104,8 @@ function draw() {
     blendMode(BLEND);
       fill(abs(sphLayer*360/LAYER.length), 100, 100);
         ellipse(point.x, point.y, pointR, pointR);
+      fill(360, 0, 100);
+        rect(HALFW, height, keyTimer*width/100, 1)
 
   colorMode(RGB, 255, 255, 255, 100);
     blendMode(MULTIPLY);
@@ -130,9 +142,11 @@ function keyPressed(){
 }
 
 function keyReleased(){
+  keyTimer = 0;
+
   if(keyCode == 32){
-    if(preview.length-1 > 0){
-      preview.pop(preview.length-1);
+    if(preview.length > 0){
+      preview.pop(preview.length);
     }
     if(spheres.length-1 <= MAXSPH){
       spheres.push(new Sphere(createVector(point.x, point.y), radSize, createVector(shot.x, shot.y), spheres.length, sphLayer));
@@ -140,13 +154,13 @@ function keyReleased(){
   }
 }
 
-function endSound(){
+function soundTimer(){
   if(fCount > 0){
     fCount--;
   }
 }
 
-function radCount(){
+function radTimer(){
   if(radSize < MAXRAD && keyIsDown(32)){
     radSize += 0.1;
   }else {
@@ -156,7 +170,7 @@ function radCount(){
 
 function Sphere(position, radius, velocity, id, layer) {
   var p = position; var r = radius; var playSound;
-  var v = velocity; var sphCollision; var endSound;
+  var v = velocity; var sphCollision; var soundTimer;
 
   this.layer = function() {
     return layer;
@@ -204,7 +218,7 @@ function Sphere(position, radius, velocity, id, layer) {
     noStroke();
     blendMode(BLEND);
       colorMode(HSB, 360, 100, 100);
-        fill(abs(layer*360/LAYER.length), abs(v.y) + abs(v.x)/(2*r/600)+50, 100);
+        fill(abs(layer*360/LAYER.length), (abs(v.y) + abs(v.x))*100/(2*r)+25, 100);
           ellipse(p.x,p.y,r,r);
   };
 
@@ -254,6 +268,15 @@ function Sphere(position, radius, velocity, id, layer) {
     var sumRad = ri + rj; // Minim distance
     var vctBtw = createVector(pi.x - pj.x, pi.y - pj.y); // Vector created from the distance between them
     var disBtw = vctBtw.mag(); // Magnitude of vctBtw
+
+    if(disBtw > sumRad*ri) return;
+
+    colorMode(HSB, 360, 100, 100);
+      stroke( layer*72 , (abs(v.y) + abs(v.x)) * 100 / sumRad + 10, 100 ); //((x1)/x2*2 + (x3 + x4)/x1-0.5)/1.5
+        blendMode(BLEND);
+          line(pi.x, pi.y, pj.x, pj.y)
+    noStroke();
+
     if(disBtw > sumRad-0.01) return; // Too to far to collide
 
     var mdBtw;
@@ -288,9 +311,9 @@ function Sphere(position, radius, velocity, id, layer) {
     vi = vi.add(impulse.mult( mi ));
     vj = vj.sub(impulse.mult( mj ));
 
-    ellipse(p.x, p.y, sumRad*2, sumRad*2)
+    ellipse(p.x, p.y, sumRad*0.7, sumRad*0.7)
 
-    playSound(layer, (ri+rj)/MAXRAD*2, (ri + rj)/MAXRAD*2);
+    playSound(layer, (ri + rj)/MAXRAD*2, (ri + rj)/MAXRAD*2);
   }
 
   playSound = function(layer, rate, vol){
