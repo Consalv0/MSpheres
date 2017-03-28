@@ -133,7 +133,6 @@ p {
 
 #game{
   background-color: #000;
-  color: @color-white;
   line-height: 0;
 }
 
@@ -162,7 +161,14 @@ p {
   &#header {
     //background-image: url(./img/header.jpg);
     text-align: center;
-    height: 81.5%;
+    height: 100%;
+
+    margin-top: -144px;
+    margin-bottom: -34px;
+
+    @media (max-height: 576px){
+      height: 576px;
+    }
   }
   &#about {
     //background-image: url(./img/acerca.jpg);
@@ -171,6 +177,8 @@ p {
     //background-image: url(./img/contacto.jpg);
   }
   &#footer {
+    height: 10%;
+    text-align: center;
     padding-top: 7px;
     padding-bottom: 7px;
     background-color: @color-white;
