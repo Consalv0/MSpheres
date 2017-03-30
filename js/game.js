@@ -235,22 +235,22 @@ function Sphere(position, radius, velocity, id, layer) {
     if (p.x + r > width) {
       p.x += -abs(-width +p.x +r)
       v.x *= -1
-      playSound(layer, 1, r /MAXRAD)
+      playSound(layer, 1, r)
     }
     if (p.x - r < 0) {
       p.x += abs(p.x -r)
       v.x *= -1
-      playSound(layer, 2, r /MAXRAD)
+      playSound(layer, 2, r)
     }
     if (p.y + r > height) {
       p.y += -abs(-height +p.y +r)
       v.y *= -1
-      playSound(layer, 3, r /MAXRAD)
+      playSound(layer, 3, r)
     }
     if (p.y - r < 0) {
       p.y += abs(p.y -r)
       v.y *= -1
-      playSound(layer, 4, r /MAXRAD)
+      playSound(layer, 4, r)
     }
     /* Draw vector axis
     stroke(0, 100, 100)
@@ -259,6 +259,7 @@ function Sphere(position, radius, velocity, id, layer) {
       line(p.x, p.y, p.x, v.y * 10 + p.y)
     noStroke()
     */
+
     // print('Esfera ' + id + ':')
     for (let j = id + 1; j < spheres.length; j++) { // Select all spheres pairs without repeating
       let sphOther = spheres[j]
@@ -274,8 +275,8 @@ function Sphere(position, radius, velocity, id, layer) {
     let pi = p; let pj = sphOther.p()
     let ri = r; let rj = sphOther.r()
 
-    let sumRad = ri + rj // Minim distance
-    let vctBtw = createVector(pi.x - pj.x, pi.y - pj.y) // Vector created from the distance between them
+    let sumRad = ri +rj // Minim distance
+    let vctBtw = createVector(pi.x -pj.x, pi.y -pj.y) // Vector created from the distance between them
     let disBtw = vctBtw.mag() // Magnitude of vctBtw
 
     let webDist = sumRad *8
@@ -340,12 +341,13 @@ function Sphere(position, radius, velocity, id, layer) {
 
     ellipse(p.x, p.y, sumRad *0.7, sumRad *0.7)
 
-    // playSound(layer, ri / sumRad *2, (ri + rj) /MAXRAD *2)
+    playSound(layer, ri /sumRad *2, ri)
   }
 
   playSound = function (layer, rate, vol) {
     if (fCount < 20) {
-      file[layer-1].play(0, rate, vol)
+      file[layer-1].play(0, rate)
+      file[layer-1].setVolume(vol/MAXRAD)
       fCount++
     }
   }
