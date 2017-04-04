@@ -1,8 +1,8 @@
 /* eslint space-infix-ops: 0, space-before-function-paren: 0, indent: 0, no-trailing-spaces: 0 */
 /* global width, height, RGB, HSB, createVector, createCanvas, ellipseMode, ellipse, noStroke,
  line, BLEND, MULTIPLY, rectMode, CENTER, loadSound, keyCode ellipseMode, rect, RADIUS, random,
- DIFFERENCE, fill, keyIsDown, colorMode, frameRate, blendMode, textFont, textSize, text, fill,
- abs, stroke, strokeWeight, print */
+ fill, keyIsDown, colorMode, frameRate, blendMode, textFont, textSize, text, fill, abs, stroke,
+ strokeWeight, loadFont, SCREEN, keyIsPressed */
 
 var file = []
 var spheres = []
@@ -22,18 +22,29 @@ var HALFH
 var sphLayer
 var radSize
 
-var fCount = 0
+var sCount = 0
 var keyTimer = 0
+var msgCount = 0
+var inactivity = 9000
+
+var domsg = false
+var active = true
+var inactive = false
 
 var point
 var offset
 var shot
+var msgInteractivity
+var msgInactivity
+
+var UbuntuMono
 
 // eslint-disable-next-line
 function preload() {
   for (let i = 0; i < numsounds; i++) {
     file.push(loadSound('assets/' + (i+1) + '.ogg'))
   }
+  UbuntuMono = loadFont('assets/UbuntuMono-Regular.ttf')
 }
 
 // eslint-disable-next-line
@@ -56,11 +67,18 @@ function setup() {
   }
   setInterval(soundTimer, 10)
   setInterval(radTimer, 10)
+  setInterval(msgDisplay, 60000)
 }
 
 // eslint-disable-next-line
 function draw() {
   frameRate(60)
+
+  msgCount++
+  if (active) {
+    if (inactivity > 0) inactivity--
+    if (inactivity <= 0) isInactive()
+  }
 
   for (let i = 0; i < preview.length; i++) {
      var prv = preview[i]
@@ -76,15 +94,19 @@ function draw() {
   }
 
   if (keyIsDown(37) && point.x >= pointR) {
+    inactivity += inactivity*0.007+inactivity < 9000 ? Math.floor(inactivity*0.007) : 0
     point.x -= pointR * 0.5
   }
   if (keyIsDown(38) && point.y >= pointR) {
+    inactivity += inactivity*0.007+inactivity < 9000 ? Math.floor(inactivity*0.007) : 0
     point.y -= pointR * 0.5
   }
   if (keyIsDown(39) && point.x <= width -pointR) {
+    inactivity += inactivity*0.007+inactivity < 9000 ? Math.floor(inactivity*0.007) : 0
     point.x += pointR * 0.5
   }
   if (keyIsDown(40) && point.y <= height -pointR) {
+    inactivity += inactivity*0.007+inactivity < 9000 ? Math.floor(inactivity*0.007) : 0
     point.y += pointR * 0.5
 
     if (keyIsDown(38)) {
@@ -97,33 +119,51 @@ function draw() {
     }
   }
   if (keyIsDown(32)) {
+    inactivity += inactivity*0.007+inactivity < 9000 ? Math.floor(inactivity*0.007) : 0
     if (preview.length <= 0) {
       preview.push(new Sphere(createVector(point.x, point.y), radSize,
        createVector(0, 0), preview.length, sphLayer))
     }
     shot = createVector(offset.x - point.x, offset.y - point.y)
   }
-  colorMode(HSB, 360, 100, 100)
-    blendMode(DIFFERENCE)
-      fill(360, 1, 100)
-        textFont('Open Sans')
-        textSize(12)
-          text('Spheres: ' + spheres.length, 10, 15)
 
-    blendMode(BLEND)
-      fill(abs(sphLayer*360/LAYER.length), 100, 100)
-        ellipse(point.x, point.y, pointR, pointR)
-      fill(360, 0, 100)
-        rect(HALFW, height, keyTimer*width/100, 1)
+  colorMode(HSB, 360, 100, 100)
+    blendMode(SCREEN)
+      fill(100, 94, 92)
+        textFont(UbuntuMono)
+        textSize(12)
+          text(spheres.length, 10, 15)
+        textSize(12)
+          if (domsg && active) text(msgInteractivity, 10, height-15)
+          if (domsg && inactive) text(msgInactivity, 10, height-15)
+
+  blendMode(BLEND)
+    fill(abs(sphLayer*360/LAYER.length), 100, 100)
+      ellipse(point.x, point.y, pointR, pointR)
+    fill(360, 0, 100)
+      rect(HALFW, height, keyTimer*width/100, 1)
+    fill(0, 100, 100)
+      rect(HALFW, 1, (9000-inactivity)*width/9000, 2)
 
   colorMode(RGB, 255, 255, 255, 100)
     blendMode(MULTIPLY)
       fill(128, TRAIL)
         rect(HALFW, HALFH, width, height)
+
+  domsg = msgCount > 680 ? false : domsg
+  msgCount = msgCount > 680 ? 0 : msgCount
 }
 
+function msgDisplay() {
+  msgInteractivity = txtInteractivity[Math.floor(random(0, txtInteractivity.length))]
+  msgInactivity = txtInactivity[Math.floor(random(0, txtInactivity.length))]
+  domsg = true
+  msgCount = 0
+}
 // eslint-disable-next-line
 function keyPressed() {
+  active = true
+  inactive = false
   radSize = MINRAD
 
   if (keyCode === 32) {
@@ -168,8 +208,8 @@ function keyReleased() {
 }
 
 function soundTimer() {
-  if (fCount > 0) {
-    fCount--
+  if (sCount > 0) {
+    sCount--
   }
 }
 
@@ -235,22 +275,22 @@ function Sphere(position, radius, velocity, id, layer) {
     if (p.x + r > width) {
       p.x += -abs(-width +p.x +r)
       v.x *= -1
-      playSound(layer, 1, r)
+      playSound(layer, 1, r /MAXRAD)
     }
     if (p.x - r < 0) {
       p.x += abs(p.x -r)
       v.x *= -1
-      playSound(layer, 2, r)
+      playSound(layer, 2, r /MAXRAD)
     }
     if (p.y + r > height) {
       p.y += -abs(-height +p.y +r)
       v.y *= -1
-      playSound(layer, 3, r)
+      playSound(layer, 3, r /MAXRAD)
     }
     if (p.y - r < 0) {
       p.y += abs(p.y -r)
       v.y *= -1
-      playSound(layer, 4, r)
+      playSound(layer, 4, r /MAXRAD)
     }
     /* Draw vector axis
     stroke(0, 100, 100)
@@ -305,7 +345,7 @@ function Sphere(position, radius, velocity, id, layer) {
 
     let dirBtw = vctBtw.normalize() // Direction of the collision vector
 
-    // TODO Fix Collision Speed
+    // TODO Fix Collision Speed (Investigate momentum)
     let vik = createVector(vi.x, vi.y) // Save velocities before collision
     let vjk = createVector(vj.x, vj.y)
 
@@ -341,14 +381,66 @@ function Sphere(position, radius, velocity, id, layer) {
 
     ellipse(p.x, p.y, sumRad *0.7, sumRad *0.7)
 
-    playSound(layer, ri /sumRad *2, ri)
+    playSound(layer, ri /sumRad *2, ri /MAXRAD)
   }
 
   playSound = function (layer, rate, vol) {
-    if (fCount < 20) {
+    if (sCount < 20) {
       file[layer-1].play(0, rate)
-      file[layer-1].setVolume(vol/MAXRAD)
-      fCount++
+      file[layer-1].setVolume(vol)
+      sCount++
     }
   }
 }
+
+function isInactive() {
+    active = false
+    inactive = true
+
+    for (let i = spheres.length; i >= 0; i--) {
+      spheres.pop(i)
+    }
+}
+
+let txtInactivity = [
+  '¿Hay alguien?',
+  '¿Sigues ahí?',
+  'Hum, parece que ya no hay nadie...',
+  'Tururu?',
+  'Parece que no hay nadie...',
+  'Oye, ¿Sigues ahí?',
+  '¿Alo?',
+  'Parece que estoy sola de nuevo...'
+]
+
+let txtInteractivity = [
+  'Puedes mover las flechas para mover el puntero.',
+  'Si aprietas las flechas arriba y abajo puedes eliminar esferas.',
+  '¿Haz intentado presionar todas las teclas al mismo tiempo?',
+  '¡Suelta la barra espaciadora para lanzar la esfera!',
+  'Si aprietas las flechas laterales cabias la capa.',
+  '¿Haz notado que el punto que controlas cambia de color?',
+  '¿Y si intentas hacer que suene bien?',
+  'Hum, no suena mal...',
+  'Me gusta como suena C:',
+  'Esa esfera parece que no chocó bien..., tendré que checar mi código.',
+  '¿Vienes aquí amenudo?',
+  '¿Ya viste el horario?, parece interesante',
+  'Ya, deja jugar a los demás',
+  '¿Si le sabes?',
+  'Jajaja, ¿a eso le llamas música?',
+  'Prueba con algo más sencillo',
+  'Woa, parecen mini telarañas',
+  '¿Alo polsia?',
+  '¿Y que tan grande se ve la esfera?',
+  'Hum...',
+  ':C',
+  'C:',
+  '¿Qué tal?',
+  '...',
+  '¿Haz intentado mantener la barra espaciadora abajo?',
+  'Pst: Me agradas',
+  'Pst: ¿Te gusta hora de aventura?',
+  'Plop, plip, plop',
+  'Buena idea, suena mejor así'
+]

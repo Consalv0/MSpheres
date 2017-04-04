@@ -7,12 +7,14 @@
   },
   "dependencies": {
     "grunt": "^1.0.1",
+    "grunt-contrib-copy": "^1.0.0",
     "grunt-contrib-jade": "^1.0.0",
     "grunt-contrib-less": "^1.4.0",
     "grunt-contrib-uglify": "^2.0.0",
-    "grunt-contrib-watch": "^1.0.0"
+    "grunt-contrib-watch": "^1.0.0",
+    "grunt-zip": "^0.17.1"
   },
-  "name": "draelena",
+  "name": "MSpheres",
   "version": "1.0.0",
   "main": "Gruntfile.js",
   "scripts": {
@@ -21,12 +23,12 @@
     "start": "grunt"
   },
   "repository": {
-    "type": "git",
-    "url": "git+ssh://git@bitbucket.org/elxris/draelena.git"
+    "type": "",
+    "url": ""
   },
   "author": "",
   "license": "MIT",
-  "homepage": "https://bitbucket.org/elxris/draelena#readme",
+  "homepage": "",
   "description": "",
   "standard": {
     "globals": [
