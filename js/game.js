@@ -2,7 +2,7 @@
 /* global width, height, RGB, HSB, createVector, createCanvas, ellipseMode, ellipse, noStroke,
  line, BLEND, MULTIPLY, rectMode, CENTER, loadSound, keyCode ellipseMode, rect, RADIUS, random,
  fill, keyIsDown, colorMode, frameRate, blendMode, textFont, textSize, text, fill, abs, stroke,
- strokeWeight, loadFont, SCREEN, keyIsPressed */
+ strokeWeight, loadFont, SCREEN */
 
 var file = []
 var spheres = []
@@ -14,6 +14,7 @@ var MAXRAD = 18   // Max Sphere radius
 var MINRAD = 3    // Min Sphere radius
 var LAYER = [1, 2, 3, 4, 5]   // Max layers
 var FRICTION = 10000 // More is less, <1 is none
+var ACTIVE_TIME = 12000 // Active time
 var numsounds = LAYER.length  // Define the number of samples
 var pointR = 3 // Radius of the preview sphere
 
@@ -25,11 +26,10 @@ var radSize
 var sCount = 0
 var keyTimer = 0
 var msgCount = 0
-var inactivity = 9000
+var inactivity = ACTIVE_TIME
 
 var domsg = false
 var active = true
-var inactive = false
 
 var point
 var offset
@@ -49,8 +49,8 @@ function preload() {
 
 // eslint-disable-next-line
 function setup() {
-  // createCanvas($(window).width(), $(window).height()).parent('game')
-  createCanvas(960, 144).parent('game')
+  createCanvas($(window).width(), $(window).height()).parent('game')
+  // createCanvas(960, 144).parent('game')
   rectMode(CENTER)
   ellipseMode(RADIUS)
   strokeWeight(2)
@@ -76,8 +76,14 @@ function draw() {
 
   msgCount++
   if (active) {
-    if (inactivity > 0) inactivity--
+    if (inactivity > 0 || inactivity < ACTIVE_TIME) inactivity--
     if (inactivity <= 0) isInactive()
+  }
+
+  function isActive() {
+    active = true
+    inactivity += inactivity*0.007+inactivity < ACTIVE_TIME ? abs(Math.floor(inactivity*0.007)) : 0
+    if (inactivity <= 0) inactivity = ACTIVE_TIME
   }
 
   for (let i = 0; i < preview.length; i++) {
@@ -94,19 +100,19 @@ function draw() {
   }
 
   if (keyIsDown(37) && point.x >= pointR) {
-    inactivity += inactivity*0.007+inactivity < 9000 ? Math.floor(inactivity*0.007) : 0
+    isActive()
     point.x -= pointR * 0.5
   }
   if (keyIsDown(38) && point.y >= pointR) {
-    inactivity += inactivity*0.007+inactivity < 9000 ? Math.floor(inactivity*0.007) : 0
+    isActive()
     point.y -= pointR * 0.5
   }
   if (keyIsDown(39) && point.x <= width -pointR) {
-    inactivity += inactivity*0.007+inactivity < 9000 ? Math.floor(inactivity*0.007) : 0
+    isActive()
     point.x += pointR * 0.5
   }
   if (keyIsDown(40) && point.y <= height -pointR) {
-    inactivity += inactivity*0.007+inactivity < 9000 ? Math.floor(inactivity*0.007) : 0
+    isActive()
     point.y += pointR * 0.5
 
     if (keyIsDown(38)) {
@@ -119,7 +125,7 @@ function draw() {
     }
   }
   if (keyIsDown(32)) {
-    inactivity += inactivity*0.007+inactivity < 9000 ? Math.floor(inactivity*0.007) : 0
+    isActive()
     if (preview.length <= 0) {
       preview.push(new Sphere(createVector(point.x, point.y), radSize,
        createVector(0, 0), preview.length, sphLayer))
@@ -135,7 +141,7 @@ function draw() {
           text(spheres.length, 10, 15)
         textSize(12)
           if (domsg && active) text(msgInteractivity, 10, height-15)
-          if (domsg && inactive) text(msgInactivity, 10, height-15)
+          if (domsg && !active) text(msgInactivity, 10, height-15)
 
   blendMode(BLEND)
     fill(abs(sphLayer*360/LAYER.length), 100, 100)
@@ -143,7 +149,7 @@ function draw() {
     fill(360, 0, 100)
       rect(HALFW, height, keyTimer*width/100, 1)
     fill(0, 100, 100)
-      rect(HALFW, 1, (9000-inactivity)*width/9000, 2)
+      rect(HALFW, 1, (ACTIVE_TIME-inactivity)*width/ACTIVE_TIME, 1)
 
   colorMode(RGB, 255, 255, 255, 100)
     blendMode(MULTIPLY)
@@ -163,7 +169,6 @@ function msgDisplay() {
 // eslint-disable-next-line
 function keyPressed() {
   active = true
-  inactive = false
   radSize = MINRAD
 
   if (keyCode === 32) {
@@ -258,7 +263,7 @@ function Sphere(position, radius, velocity, id, layer) {
       if (v.y > 0) { v.y -= abs(v.y) / FRICTION }
       if (v.y < 0) { v.y += abs(v.y) / FRICTION }
     }
-    p.add(v)
+    if (active) p.add(v)
   }
 
   this.display = function() {
@@ -395,9 +400,8 @@ function Sphere(position, radius, velocity, id, layer) {
 
 function isInactive() {
     active = false
-    inactive = true
 
-    for (let i = spheres.length; i >= 0; i--) {
+    for (let i = spheres.length; i > 5; i--) {
       spheres.pop(i)
     }
 }
@@ -410,7 +414,8 @@ let txtInactivity = [
   'Parece que no hay nadie...',
   'Oye, ¿Sigues ahí?',
   '¿Alo?',
-  'Parece que estoy sola de nuevo...'
+  'Parece que estoy sola de nuevo...',
+  'Puedes mover las flechas para mover el puntero...'
 ]
 
 let txtInteractivity = [
